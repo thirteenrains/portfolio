@@ -534,7 +534,7 @@ function makeFish(f, sc) {
   /* body – artwork image clipped to fish ellipse */
   '<g filter="url(#gl'+id+')">'+
     '<g clip-path="url(#bc'+id+')">'+
-      '<image href="'+f.img+'" x="'+(cx-bw)+'" y="'+(by-bh)+'" width="'+(bw*2)+'" height="'+(bh*2)+
+      '<image class="fish-img" data-src="'+f.img.replace('images/','images/thumbs/')+'" x="'+(cx-bw)+'" y="'+(by-bh)+'" width="'+(bw*2)+'" height="'+(bh*2)+
         '" preserveAspectRatio="xMidYMid slice" opacity="0.80"/>'+
       '<ellipse cx="'+cx+'" cy="'+by+'" rx="'+bw+'" ry="'+bh+'" fill="'+c+'" opacity="0.40"/>'+
     '</g>'+
@@ -620,6 +620,19 @@ fishes.forEach(function(f,i){
   dg.appendChild(dc);
   detailCards.push(dc);
 });
+
+// ── Lazy-load fish images ──────────────────────────────────────────────────────
+(function(){
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(!entry.isIntersecting) return;
+      var img = entry.target.querySelector('image.fish-img');
+      if(img) img.setAttribute('href', img.getAttribute('data-src'));
+      io.unobserve(entry.target);
+    });
+  }, { rootMargin:'120px' });
+  fishCards.forEach(function(card){ io.observe(card); });
+})();
 
 // ── Cross-highlight (fish ↔ detail-card) ───────────────────────────────────────
 fishCards.forEach(function(card, i){
