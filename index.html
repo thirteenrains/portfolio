@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FISH PORTFOLIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #05111f; --deep: #030c17;
+  --paper: #e8f4f8; --teal: #4ecdc4; --teal-dim: #2a8f88;
+  --gold: #f7c948; --muted: #4a6880;
+  --surface: rgba(255,255,255,0.04); --border: rgba(78,205,196,0.15);
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--paper);
+  font-family: 'Space Mono', monospace;
+  cursor: none; overflow-x: hidden; min-height: 100vh;
+}
+ 
+/* Cursor */
+.cursor {
+  position: fixed; pointer-events: none; z-index: 9999;
+  transform: translate(-32px, -111px);
+}
+.cursor-ring { display: none; }
+.fc-swing {
+  transform-origin: 20px 14px;
+  animation: fcSwing 2.8s ease-in-out infinite;
+}
+@keyframes fcSwing {
+  0%,100% { transform: rotate(0deg); }
+  35%     { transform: rotate(2.5deg); }
+  65%     { transform: rotate(-2.5deg); }
+}
+.cursor.hov .fc-swing {
+  animation: fcJerk 0.38s ease-in-out infinite;
+}
+@keyframes fcJerk {
+  0%,100% { transform: rotate(0deg); }
+  30%     { transform: rotate(-4deg); }
+  70%     { transform: rotate(3deg); }
+}
+ 
+/* Ocean BG */
+.ocean-bg {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 0%, #0a2540 0%, #030c17 70%);
+}
+.ocean-bg::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 40% at 20% 80%, rgba(78,205,196,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 60%, rgba(30,80,140,.12) 0%, transparent 60%);
+}
+.caustic {
+  position: absolute; inset: -50%;
+  background:
+    repeating-linear-gradient(60deg, transparent 0, transparent 40px, rgba(78,205,196,.018) 40px, rgba(78,205,196,.018) 41px),
+    repeating-linear-gradient(-60deg, transparent 0, transparent 55px, rgba(100,180,255,.015) 55px, rgba(100,180,255,.015) 56px);
+  animation: causticDrift 18s linear infinite;
+}
+@keyframes causticDrift {
+  from { transform: translate(0,0) rotate(0deg); }
+  to   { transform: translate(30px,20px) rotate(2deg); }
+}
+.bubbles { position: absolute; inset: 0; pointer-events: none; }
+.bubble {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(78,205,196,.2);
+  animation: rise linear infinite;
+}
+@keyframes rise {
+  from { transform: translateY(110vh) scale(1); opacity: .6; }
+  to   { transform: translateY(-10vh) scale(1.3); opacity: 0; }
+}
+ 
+/* Header */
+header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: 1.8rem 3rem 1.4rem;
+  background: linear-gradient(to bottom, rgba(3,12,23,.95) 0%, transparent 100%);
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.3rem,2.2vw,1.8rem);
+  font-weight: 300; letter-spacing: .15em; color: var(--paper);
+}
+.logo span { color: var(--teal); font-style: italic; }
+nav { display: flex; gap: 2.5rem; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+nav a { color: inherit; text-decoration: none; transition: color .3s; }
+nav a:hover { color: var(--teal); }
+ 
+/* Hero */
+.hero {
+  position: relative; z-index: 1;
+  min-height: 25vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 3rem 3.5rem; overflow: hidden;
+}
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem,5vw,4.2rem);
+  font-weight: 300; line-height: 1.05; letter-spacing: -.02em;
+}
+.hero-title em { color: var(--teal); font-style: italic; }
+.hero-sub {
+  margin-top: 1.5rem; font-size: .6rem; letter-spacing: .3em;
+  text-transform: uppercase; color: var(--muted); line-height: 2.2; max-width: 360px;
+}
+ 
+/* Fish Row */
+.fish-row-wrap { position: relative; z-index: 1; padding: 0 3rem 2rem; }
+.row-label {
+  font-size: .58rem; letter-spacing: .35em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 2.5rem;
+  display: flex; align-items: center; gap: 1.2rem;
+}
+.row-label::after {
+  content: ''; height: 1px; width: 60px;
+  background: var(--teal); opacity: .35;
+}
+.fish-track {
+  display: flex; gap: 20px;
+  overflow-x: auto; overflow-y: visible;
+  padding-bottom: 2rem; padding-top: 80px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin; scrollbar-color: var(--teal-dim) transparent;
+}
+.fish-track::-webkit-scrollbar { height: 3px; }
+.fish-track::-webkit-scrollbar-thumb { background: var(--teal-dim); border-radius: 2px; }
+ 
+/* Fish Card */
+.fish-card {
+  flex: 0 0 auto; width: 160px;
+  scroll-snap-align: start;
+  display: flex; flex-direction: column; align-items: center;
+  cursor: none; position: relative; padding-top: 10px;
+}
+.fish-frame {
+  width: 130px; height: 220px; position: relative;
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94);
+  transform-origin: bottom center;
+}
+.fish-card:hover .fish-frame { transform: translateY(-12px) scale(1.05); }
+.fish-svg-wrap {
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,.5));
+  transition: filter .4s;
+}
+.fish-card:hover .fish-svg-wrap {
+  filter: drop-shadow(0 16px 36px rgba(78,205,196,.4)) drop-shadow(0 0 18px rgba(78,205,196,.18));
+}
+.fish-label {
+  margin-top: 1rem; text-align: center;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .35s, transform .35s;
+}
+.fish-card:hover .fish-label { opacity: 1; transform: translateY(0); }
+.fish-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: .95rem; font-weight: 300; letter-spacing: .04em; color: var(--paper);
+}
+.fish-sub { font-size: .48rem; letter-spacing: .18em; text-transform: uppercase; color: var(--teal); margin-top: .25rem; }
+.fish-hint {
+  position: absolute; top: 0; right: 14px;
+  width: 24px; height: 24px;
+  border: 1px solid rgba(78,205,196,.45); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; color: var(--teal);
+  opacity: 0; transition: opacity .3s;
+}
+.fish-card:hover .fish-hint { opacity: 1; }
+ 
+/* Detail Grid */
+.gallery-section { position: relative; z-index: 1; padding: 2rem 3rem 5rem; }
+.section-label {
+  font-size: .58rem; letter-spacing: .35em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 3rem;
+  display: flex; align-items: center; gap: 1.2rem;
+}
+.section-label::after { content: ''; height: 1px; width: 60px; background: var(--teal); opacity: .35; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(240px,1fr)); gap: 14px; }
+.detail-card {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 1.8rem; transition: background .3s, border-color .3s, transform .3s; cursor: none;
+}
+.detail-card:hover, .detail-card.active { background: rgba(78,205,196,.06); border-color: rgba(78,205,196,.35); transform: translateY(-4px); }
+.fish-card.active .fish-frame { transform: translateY(-12px) scale(1.05); }
+.fish-card.active .fish-svg-wrap { filter: drop-shadow(0 16px 36px rgba(78,205,196,.4)) drop-shadow(0 0 18px rgba(78,205,196,.18)); }
+.fish-card.active .fish-label { opacity: 1; transform: translateY(0); }
+.fish-card.active .fish-hint { opacity: 1; }
+.dc-num { font-size: .48rem; letter-spacing: .3em; color: var(--teal); margin-bottom: .8rem; }
+.dc-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 300; }
+.dc-latin { font-size: .52rem; letter-spacing: .14em; color: var(--muted); margin-top: .25rem; font-style: italic; }
+.dc-desc { font-family: 'Cormorant Garamond', serif; font-size: .9rem; line-height: 1.8; color: rgba(232,244,248,.6); margin-top: .9rem; }
+ 
+/* Lightbox */
+.lightbox {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .4s;
+}
+.lightbox.active { opacity: 1; pointer-events: all; }
+.lb-backdrop { position: absolute; inset: 0; background: rgba(3,8,15,.93); backdrop-filter: blur(16px); }
+.lb-box {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 280px 1fr;
+  max-width: min(90vw, 860px); max-height: 88vh;
+  background: #071524; border: 1px solid var(--border);
+  transform: scale(.95) translateY(18px);
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94);
+  overflow: hidden;
+}
+.lightbox.active .lb-box { transform: scale(1) translateY(0); }
+.lb-fish-panel {
+  background: linear-gradient(180deg, #030c17 0%, #071a2e 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 2.5rem 1.5rem; position: relative; overflow: hidden;
+}
+.lb-fish-panel::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgba(78,205,196,.09) 0%, transparent 65%);
+}
+.lb-glow {
+  position: absolute; bottom: 12%;
+  width: 100px; height: 26px;
+  background: radial-gradient(ellipse, rgba(78,205,196,.28) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.lb-artwork { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: .92; }
+.lb-info {
+  padding: 2.2rem 2rem; overflow-y: auto;
+  display: flex; flex-direction: column; gap: .9rem;
+  border-left: 1px solid var(--border);
+}
+.lb-num { font-size: .5rem; letter-spacing: .3em; color: var(--teal); }
+.lb-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem,3.5vw,2.6rem); font-weight: 300; line-height: 1; }
+.lb-name em { color: var(--teal); font-style: italic; }
+.lb-latin { font-size: .52rem; letter-spacing: .16em; color: var(--muted); font-style: italic; }
+.lb-divider { width: 36px; height: 1px; background: var(--teal); opacity: .35; }
+.lb-desc { font-family: 'Cormorant Garamond', serif; font-size: 1rem; line-height: 1.9; color: rgba(232,244,248,.72); flex: 1; }
+.lb-specs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .7rem;
+  padding-top: .9rem; border-top: 1px solid var(--border);
+}
+.spec { display: flex; flex-direction: column; gap: .2rem; }
+.spec-k { font-size: .45rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.spec-v { font-family: 'Cormorant Garamond', serif; font-size: .9rem; color: var(--paper); }
+.lb-tags { display: flex; flex-wrap: wrap; gap: .35rem; }
+.lb-tag { font-size: .45rem; letter-spacing: .16em; text-transform: uppercase; border: 1px solid rgba(78,205,196,.25); color: var(--teal); padding: .18rem .55rem; }
+.lb-close {
+  position: fixed; top: 1.8rem; right: 2rem;
+  width: 42px; height: 42px;
+  border: 1px solid rgba(78,205,196,.25);
+  display: flex; align-items: center; justify-content: center;
+  cursor: none; z-index: 10; transition: border-color .3s, background .3s;
+}
+.lb-close:hover { border-color: var(--teal); background: rgba(78,205,196,.08); }
+.lb-close::before, .lb-close::after { content: ''; position: absolute; width: 15px; height: 1px; background: var(--paper); }
+.lb-close::before { transform: rotate(45deg); }
+.lb-close::after  { transform: rotate(-45deg); }
+.lb-nav { position: fixed; bottom: 2.5rem; right: 2.5rem; display: flex; gap: .5rem; z-index: 10; }
+.lb-nav button {
+  width: 36px; height: 36px; border: 1px solid rgba(78,205,196,.25);
+  background: transparent; color: var(--paper); cursor: none;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .3s; font-size: .9rem;
+}
+.lb-nav button:hover { border-color: var(--teal); }
+ 
+footer {
+  position: relative; z-index: 1; padding: 2.5rem 3rem;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid rgba(78,205,196,.07);
+  font-size: .55rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9000; opacity: .35;
+}
+@keyframes shimmer { 0%,100%{opacity:.15} 50%{opacity:.38} }
+ 
+@media(max-width:768px){
+  header{padding:1.2rem 1.5rem;} nav{display:none;}
+  .hero,.fish-row-wrap,.gallery-section{padding-left:1.2rem;padding-right:1.2rem;}
+  .lb-box{grid-template-columns:1fr;}
+  .lb-fish-panel{min-height:200px;padding:1.5rem;}
+  .lb-fish-svg{width:120px;height:200px;}
+  footer{flex-direction:column;gap:.8rem;text-align:center;}
+}
+</style>
+</head>
+<body>
+ 
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+ 
+<div class="ocean-bg">
+  <div class="caustic"></div>
+  <div class="bubbles" id="bubbles"></div>
+</div>
+ 
+<header>
+  <div class="logo">YooEun<span>'s</span> Gallery</div>
+  <nav>
+    <a href="#">Collection</a>
+    <a href="#">Species</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </nav>
+</header>
+ 
+<section class="hero">
+  <div class="hero-title">Beneath the <em>Surface</em></div>
+  <p class="hero-sub">물고기의 형태로 떠오르는 명화들 — 색과 빛과 시대를 넘어 유영하는 여덟 점의 명작</p>
+</section>
+ 
+<div class="fish-row-wrap">
+  <div class="row-label">Featured Works</div>
+  <div class="fish-track" id="fishTrack"></div>
+</div>
+ 
+<section class="gallery-section">
+  <div class="section-label">All Works</div>
+  <div class="detail-grid" id="detailGrid"></div>
+</section>
+ 
+<footer>
+  <span>© 2026 DeepSea Gallery</span>
+  <span>All illustrations original works</span>
+</footer>
+ 
+<div class="lightbox" id="lightbox">
+  <div class="lb-backdrop" id="lbBackdrop"></div>
+  <div class="lb-close" id="lbClose"></div>
+  <div class="lb-box">
+    <div class="lb-fish-panel">
+      <div class="lb-glow"></div>
+      <img class="lb-artwork" id="lbArtwork" src="" alt=""/>
+    </div>
+    <div class="lb-info">
+      <div class="lb-num" id="lbNum"></div>
+      <div class="lb-name" id="lbName"></div>
+      <div class="lb-latin" id="lbLatin"></div>
+      <div class="lb-divider"></div>
+      <p class="lb-desc" id="lbDesc"></p>
+      <div class="lb-specs" id="lbSpecs"></div>
+      <div class="lb-tags" id="lbTags"></div>
+    </div>
+  </div>
+  <div class="lb-nav">
+    <button id="lbPrev">&#8592;</button>
+    <button id="lbNext">&#8594;</button>
+  </div>
+</div>
+ 
+<script>
+// ── Data ───────────────────────────────────────────────────────────────────────
+const fishes = [
+  { name:"Gustav Klimt",
+    workShort:"키스",
+    workTitle:"The Kiss (Lovers)",
+    latin:"1907–08 · Oil and Gold Leaf",
+    collection:"Österreichische Galerie Belvedere, Vienna",
+    medium:"캔버스에 유채와 금박",
+    size:"180 × 180 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/f/f3/Gustav_Klimt_016.jpg",
+    body:"#c8a844", fin:"#a07828", belly:"#e8d08a",
+    stripes:true, stripeCol:"rgba(160,120,40,.3)",
+    desc:"황금빛 비늘의 이 물고기가 품은 것은 클림트의 황금 — 금박과 기하학적 문양으로 뒤덮인 두 연인의 포옹입니다. 욕망과 헌신이 황금으로 결정화된 그 순간, 세기말 빈의 관능과 아름다움이 하나의 화폭에 녹아듭니다.",
+    tags:["Symbolism","Art Nouveau","Gold","Vienna"] },
+  { name:"Katsushika Hokusai",
+    workShort:"가나가와 해변의 높은 파도",
+    workTitle:"The Great Wave off Kanagawa",
+    latin:"1831 · Woodblock Print",
+    collection:"Metropolitan Museum of Art, New York",
+    medium:"목판 다색 인쇄 (우키요에)",
+    size:"25.7 × 37.9 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/0/0d/Great_Wave_off_Kanagawa2.jpg",
+    body:"#3a9fd8", fin:"#1a6fa8", belly:"#a0d8f0",
+    stripes:true, stripeCol:"rgba(26,111,168,.35)",
+    desc:"파란 나비고기의 섬세한 지느러미처럼, 호쿠사이의 파도는 세밀하고도 거대합니다. 후지산을 배경으로 치솟는 파도 — 자연의 압도적 힘 앞에 선 인간의 무력함과 숭고함이 한 장의 목판화 안에 공존합니다.",
+    tags:["Ukiyo-e","Japanese","Woodblock","Iconic"] },
+  { name:"Edvard Munch",
+    workShort:"절규",
+    workTitle:"The Scream",
+    latin:"1893 · Oil, Tempera and Pastel",
+    collection:"National Museum, Oslo",
+    medium:"판지에 유채, 템페라, 파스텔",
+    size:"91 × 73 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/c/c5/Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg",
+    body:"#c84040", fin:"#8b2020", belly:"#f09080",
+    stripes:false, stripeCol:"",
+    desc:"붉은 쏨뱅이의 독이 온몸으로 퍼지듯, 뭉크의 붉은 하늘은 실존적 공포로 가득합니다. 오슬로 피오르드 위에서 소용돌이치는 불타는 노을 아래, 극도의 불안이 형태를 얻어 영원한 비명으로 굳어버립니다.",
+    tags:["Expressionism","Symbolism","Anxiety","1893"] },
+  { name:"Claude Monet",
+    workShort:"수련 — Nymphéas",
+    workTitle:"Nymphéas (Water Lilies)",
+    latin:"1906 · Oil on Canvas",
+    collection:"Art Institute of Chicago",
+    medium:"캔버스에 유채",
+    size:"89 × 93 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/a/aa/Claude_Monet_-_Water_Lilies_-_1906%2C_Ryerson.jpg",
+    body:"#3ab87a", fin:"#1a8050", belly:"#90e8c0",
+    stripes:true, stripeCol:"rgba(26,128,80,.28)",
+    desc:"에메랄드 빛 놀래기가 수면 아래를 유영하듯, 모네는 빛과 물의 경계를 지워버립니다. 지베르니 연못의 반영 속에서 실체와 환영이 녹아드는 이 순간은, 인상주의가 도달한 가장 아름다운 소멸입니다.",
+    tags:["Impressionism","Landscape","Series","Giverny"] },
+  { name:"Wassily Kandinsky",
+    workShort:"콤포지션 VIII",
+    workTitle:"Composition VIII",
+    latin:"1923 · Oil on Canvas",
+    collection:"Solomon R. Guggenheim Museum",
+    medium:"캔버스에 유채",
+    size:"140 × 201 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/4/47/Vassily_Kandinsky%2C_1923_-_Composition_8%2C_huile_sur_toile%2C_140_cm_x_201_cm%2C_Mus%C3%A9e_Guggenheim%2C_New_York.jpg",
+    body:"#7a40c8", fin:"#4a1890", belly:"#c0a0f0",
+    stripes:true, stripeCol:"rgba(74,24,144,.32)",
+    desc:"보라 천사고기의 비늘 위에서 칸딘스키의 음악이 들립니다. 원과 선, 삼각형이 화음처럼 배치된 이 화폭은 눈으로 듣고 귀로 보는 공감각의 세계 — 추상이 언어를 초월하는 순간입니다.",
+    tags:["Abstract","Bauhaus","Geometric","1923"] },
+  { name:"Vincent van Gogh",
+    workShort:"별이 빛나는 밤",
+    workTitle:"The Starry Night",
+    latin:"1889 · Oil on Canvas",
+    collection:"MoMA, New York",
+    medium:"캔버스에 유채",
+    size:"74 × 92 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/c/cd/VanGogh-starry_night.jpg",
+    body:"#e87820", fin:"#a84800", belly:"#f8c080",
+    stripes:false, stripeCol:"",
+    desc:"오렌지 쥐치의 강렬한 존재감처럼, 반 고흐는 생 레미 정신병원의 창밖 하늘을 온 에너지로 담아냈습니다. 소용돌이치는 별빛 아래 고요한 마을 — 광기와 아름다움이 같은 붓 끝에서 피어나는 기적입니다.",
+    tags:["Post-Impressionism","Expressionism","1889","Night"] },
+  { name:"Johannes Vermeer",
+    workShort:"진주 귀걸이를 한 소녀",
+    workTitle:"Girl with a Pearl Earring",
+    latin:"c. 1665 · Oil on Canvas",
+    collection:"Mauritshuis, The Hague",
+    medium:"캔버스에 유채",
+    size:"44.5 × 39 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/c/ce/Girl_with_a_Pearl_Earring.jpg",
+    body:"#8ab0c8", fin:"#4a7090", belly:"#d0e8f8",
+    stripes:true, stripeCol:"rgba(74,112,144,.22)",
+    desc:"은빛 청새치가 해면을 스치듯, 베르메르의 빛은 소녀의 피부와 진주를 섬세하게 스칩니다. 어둠 속에서 고개를 돌리는 그 찰나 — 진주 귀걸이 하나가 포착한 시간의 완벽한 정지, 네덜란드 황금 시대의 가장 신비로운 눈빛입니다.",
+    tags:["Dutch Golden Age","Portrait","Baroque","1665"] },
+  { name:"Caravaggio",
+    workShort:"유디트와 홀로페르네스",
+    workTitle:"Judith Beheading Holofernes",
+    latin:"1598–99 · Oil on Canvas",
+    collection:"Galleria Nazionale d'Arte Antica, Rome",
+    medium:"캔버스에 유채",
+    size:"145 × 195 cm",
+    img:"https://upload.wikimedia.org/wikipedia/commons/9/93/Caravaggio_-_Judith_beheading_Holofernes.jpg",
+    body:"#2a4a5a", fin:"#1a2a38", belly:"#5080a0",
+    stripes:true, stripeCol:"rgba(80,128,160,.28)",
+    desc:"나폴레옹 놀래기의 거대한 어둠처럼, 카라바조의 명암은 강렬한 존재감으로 그림자를 가릅니다. 빛과 어둠의 극적 대비 속에서 유디트의 결연한 표정은 바로크 미술이 포착한 가장 날카로운 순간입니다.",
+    tags:["Baroque","Chiaroscuro","Figurative","1599"] }
+];
+ 
+// ── SVG fish (머리 위쪽, 꼬리 아래쪽) ─────────────────────────────────────────
+function makeFish(f, sc) {
+  sc = sc || 1;
+  const W = 120*sc, H = 220*sc, cx = W/2;
+  const bw = W*0.40, bh = H*0.50, by = H*0.40;
+  const c = f.body, cf = f.fin, cb = f.belly;
+  const id = 'f'+Math.random().toString(36).slice(2,7);
+ 
+  let stripes = '';
+  if (f.stripes) {
+    for (let i=0;i<4;i++) {
+      const yy = by - bh*0.25 + (bh*0.52)*(i/3);
+      stripes += '<line x1="'+(cx-bw*0.82)+'" y1="'+yy+'" x2="'+(cx+bw*0.82)+'" y2="'+yy+
+        '" stroke="'+f.stripeCol+'" stroke-width="'+(2*sc)+'"/>';
+    }
+  }
+ 
+  // scale pattern
+  let scales = '';
+  for (let row=0;row<5;row++) {
+    for (let col=0;col<4;col++) {
+      const sx = cx - bw*0.55 + col*(bw*0.30) + (row%2)*bw*0.15;
+      const sy = by - bh*0.28 + row*(bh*0.13);
+      scales += '<path d="M'+sx+','+sy+' Q'+(sx+bw*0.12)+','+(sy+bh*0.05)+' '+(sx+bw*0.24)+','+sy+
+        '" fill="none" stroke="'+c+'" stroke-width="'+(0.8*sc)+'" opacity="0.28"/>';
+    }
+  }
+ 
+  return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="overflow:visible">'+
+  '<defs>'+
+    '<clipPath id="bc'+id+'">'+
+      '<ellipse cx="'+cx+'" cy="'+by+'" rx="'+bw+'" ry="'+bh+'"/>'+
+    '</clipPath>'+
+    '<radialGradient id="hl'+id+'" cx="35%" cy="28%" r="45%">'+
+      '<stop offset="0%" stop-color="#fff" stop-opacity="0.52"/>'+
+      '<stop offset="100%" stop-color="#fff" stop-opacity="0"/>'+
+    '</radialGradient>'+
+    '<filter id="gl'+id+'" x="-30%" y="-30%" width="160%" height="160%">'+
+      '<feGaussianBlur stdDeviation="'+(3*sc)+'" result="b"/>'+
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+    '</filter>'+
+  '</defs>'+
+ 
+  /* dorsal fin – top */
+  '<path d="M'+(cx-bw*0.28)+','+(by-bh*0.48)+' Q'+cx+','+(by-bh*0.90)+' '+(cx+bw*0.28)+','+(by-bh*0.48)+
+    '" fill="'+cf+'" opacity="0.82"/>'+
+  /* dorsal spines */
+  [-.18,-.04,.10,.22].map(function(dx){
+    return '<line x1="'+(cx+dx*bw)+'" y1="'+(by-bh*0.48)+'" x2="'+(cx+dx*bw*1.5)+'" y2="'+(by-bh*0.82)+
+      '" stroke="'+cf+'" stroke-width="'+(1.1*sc)+'" opacity="0.55"/>';
+  }).join('')+
+ 
+  /* pectoral fins */
+  '<path d="M'+(cx-bw*0.78)+','+(by-0.08*bh)+' Q'+(cx-bw*1.32)+','+(by+bh*0.12)+' '+(cx-bw*0.62)+','+(by+bh*0.24)+
+    '" fill="'+cf+'" opacity="0.72"/>'+
+  '<path d="M'+(cx+bw*0.78)+','+(by-0.08*bh)+' Q'+(cx+bw*1.32)+','+(by+bh*0.12)+' '+(cx+bw*0.62)+','+(by+bh*0.24)+
+    '" fill="'+cf+'" opacity="0.72"/>'+
+ 
+  /* ventral fins */
+  '<path d="M'+(cx-bw*0.33)+','+(by+bh*0.46)+' Q'+(cx-bw*0.68)+','+(by+bh*0.72)+' '+(cx-bw*0.18)+','+(by+bh*0.58)+
+    '" fill="'+cf+'" opacity="0.65"/>'+
+  '<path d="M'+(cx+bw*0.33)+','+(by+bh*0.46)+' Q'+(cx+bw*0.68)+','+(by+bh*0.72)+' '+(cx+bw*0.18)+','+(by+bh*0.58)+
+    '" fill="'+cf+'" opacity="0.65"/>'+
+ 
+  /* tail fin */
+  '<path d="M'+(cx-bw*0.44)+','+(by+bh*0.64)+' Q'+(cx-bw*0.92)+','+(by+bh*1.12)+' '+(cx-bw*0.08)+','+(by+bh*0.74)+
+    ' L'+cx+','+(by+bh*0.68)+
+    ' L'+(cx+bw*0.08)+','+(by+bh*0.74)+
+    ' Q'+(cx+bw*0.92)+','+(by+bh*1.12)+' '+(cx+bw*0.44)+','+(by+bh*0.64)+
+    '" fill="'+cf+'" stroke="'+c+'" stroke-width="'+sc+'"/>'+
+ 
+  /* body – artwork image clipped to fish ellipse */
+  '<g filter="url(#gl'+id+')">'+
+    '<g clip-path="url(#bc'+id+')">'+
+      '<image href="'+f.img+'" x="'+(cx-bw)+'" y="'+(by-bh)+'" width="'+(bw*2)+'" height="'+(bh*2)+
+        '" preserveAspectRatio="xMidYMid slice" opacity="0.80"/>'+
+      '<ellipse cx="'+cx+'" cy="'+by+'" rx="'+bw+'" ry="'+bh+'" fill="'+c+'" opacity="0.40"/>'+
+    '</g>'+
+  '</g>'+
+ 
+  stripes + scales +
+ 
+  /* belly */
+  '<ellipse cx="'+cx+'" cy="'+(by+bh*0.15)+'" rx="'+(bw*0.42)+'" ry="'+(bh*0.32)+'" fill="'+cb+'" opacity="0.22"/>'+
+ 
+  /* highlight */
+  '<ellipse cx="'+(cx-bw*0.14)+'" cy="'+(by-bh*0.22)+'" rx="'+(bw*0.34)+'" ry="'+(bh*0.26)+
+    '" fill="url(#hl'+id+')" style="animation:shimmer 3s ease-in-out infinite"/>'+
+ 
+  /* gill */
+  '<path d="M'+(cx-bw*0.62)+','+(by-bh*0.36)+' Q'+(cx-bw*0.46)+','+(by-bh*0.24)+' '+(cx-bw*0.56)+','+(by-bh*0.04)+
+    '" fill="none" stroke="'+cf+'" stroke-width="'+(1.4*sc)+'" opacity="0.45"/>'+
+ 
+  /* snout */
+  '<ellipse cx="'+cx+'" cy="'+(by-bh*0.90)+'" rx="'+(bw*0.26)+'" ry="'+(bh*0.11)+'" fill="'+c+'"/>'+
+  /* mouth */
+  '<path d="M'+(cx-bw*0.14)+','+(by-bh*0.83)+' Q'+cx+','+(by-bh*0.76)+' '+(cx+bw*0.14)+','+(by-bh*0.83)+
+    '" fill="none" stroke="'+cb+'" stroke-width="'+(1.3*sc)+'" opacity="0.55"/>'+
+ 
+  /* eye white */
+  '<circle cx="'+(cx+bw*0.22)+'" cy="'+(by-bh*0.64)+'" r="'+(bw*0.13)+'" fill="#fff"/>'+
+  /* pupil */
+  '<circle cx="'+(cx+bw*0.22)+'" cy="'+(by-bh*0.64)+'" r="'+(bw*0.088)+'" fill="#1a1a1a"/>'+
+  /* shine */
+  '<circle cx="'+(cx+bw*0.26)+'" cy="'+(by-bh*0.67)+'" r="'+(bw*0.034)+'" fill="#fff" opacity="0.85"/>'+
+  /* nostril */
+  '<circle cx="'+(cx+bw*0.07)+'" cy="'+(by-bh*0.81)+'" r="'+(bw*0.024)+'" fill="'+cf+'" opacity="0.6"/>'+
+ 
+  /* anal fin */
+  '<path d="M'+(cx-bw*0.14)+','+(by+bh*0.66)+' Q'+cx+','+(by+bh*0.86)+' '+(cx+bw*0.14)+','+(by+bh*0.66)+
+    '" fill="'+cf+'" opacity="0.5"/>'+
+ 
+  '</svg>';
+}
+ 
+// ── Bubbles ────────────────────────────────────────────────────────────────────
+(function(){
+  var wrap = document.getElementById('bubbles');
+  for(var i=0;i<18;i++){
+    var b = document.createElement('div');
+    b.className = 'bubble';
+    var sz = 4+Math.random()*16;
+    b.style.cssText = 'width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100)+'%;'+
+      'animation-duration:'+(8+Math.random()*14)+'s;animation-delay:'+(-(Math.random()*14))+'s;';
+    wrap.appendChild(b);
+  }
+})();
+ 
+// ── Fish row ───────────────────────────────────────────────────────────────────
+var track = document.getElementById('fishTrack');
+var fishCards = [], detailCards = [];
+fishes.forEach(function(f,i){
+  var card = document.createElement('div');
+  card.className = 'fish-card';
+  card.innerHTML =
+    '<div class="fish-hint">+</div>'+
+    '<div class="fish-frame"><div class="fish-svg-wrap">'+makeFish(f,1)+'</div></div>'+
+    '<div class="fish-label">'+
+      '<div class="fish-name">'+f.name+'</div>'+
+      '<div class="fish-sub">'+f.workShort+'</div>'+
+    '</div>';
+  card.addEventListener('click', function(){ openLB(i); });
+  track.appendChild(card);
+  fishCards.push(card);
+});
+
+// ── Detail grid ────────────────────────────────────────────────────────────────
+var dg = document.getElementById('detailGrid');
+fishes.forEach(function(f,i){
+  var dc = document.createElement('div');
+  dc.className = 'detail-card';
+  dc.innerHTML =
+    '<div class="dc-num">— '+String(i+1).padStart(2,'0')+'</div>'+
+    '<div class="dc-name">'+f.workShort+'</div>'+
+    '<div class="dc-latin">'+f.name+' — '+f.latin.split(' · ')[0]+'</div>'+
+    '<p class="dc-desc">'+f.desc.slice(0,55)+'&#8230;</p>';
+  dc.addEventListener('click', function(){ openLB(i); });
+  dg.appendChild(dc);
+  detailCards.push(dc);
+});
+
+// ── Cross-highlight (fish ↔ detail-card) ───────────────────────────────────────
+fishCards.forEach(function(card, i){
+  card.addEventListener('mouseenter', function(){ detailCards[i].classList.add('active'); });
+  card.addEventListener('mouseleave',  function(){ detailCards[i].classList.remove('active'); });
+});
+detailCards.forEach(function(dc, i){
+  dc.addEventListener('mouseenter', function(){ fishCards[i].classList.add('active'); });
+  dc.addEventListener('mouseleave',  function(){ fishCards[i].classList.remove('active'); });
+});
+ 
+// ── Cursor ─────────────────────────────────────────────────────────────────────
+var cur = document.getElementById('cursor');
+var rng = document.getElementById('cursorRing');
+cur.innerHTML =
+  '<svg width="62" height="125" viewBox="0 0 62 125" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;display:block">'+
+    '<line x1="20" y1="14" x2="72" y2="-27" stroke="#c09050" stroke-width="2.6" stroke-linecap="round"/>'+
+    '<circle cx="34" cy="4"  r="2.2" fill="none" stroke="#c09050" stroke-width="0.9" opacity="0.7"/>'+
+    '<circle cx="48" cy="-7" r="1.8" fill="none" stroke="#c09050" stroke-width="0.9" opacity="0.7"/>'+
+    '<circle cx="62" cy="-18" r="1.4" fill="none" stroke="#c09050" stroke-width="0.9" opacity="0.7"/>'+
+    '<circle cx="20" cy="14" r="1.6" fill="#e8c878"/>'+
+    '<g class="fc-swing">'+
+      '<path d="M20,14 Q16,64 20,106" fill="none" stroke="rgba(220,235,245,0.55)" stroke-width="0.9"/>'+
+      '<line x1="20" y1="106" x2="20" y2="115" stroke="#7a9eb8" stroke-width="1.9" stroke-linecap="round"/>'+
+      '<path d="M20,115 Q32,122 32,111" fill="none" stroke="#7a9eb8" stroke-width="1.9" stroke-linecap="round"/>'+
+      '<line x1="32" y1="111" x2="25" y2="106" stroke="#7a9eb8" stroke-width="1.3" stroke-linecap="round"/>'+
+    '</g>'+
+  '</svg>';
+var mx=0, my=0, rx=0, ry=0;
+document.addEventListener('mousemove', function(e){ mx=e.clientX; my=e.clientY; });
+(function loop(){
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+  rx+=(mx-rx)*0.14; ry+=(my-ry)*0.14;
+  rng.style.left=rx+'px'; rng.style.top=ry+'px';
+  requestAnimationFrame(loop);
+})();
+document.querySelectorAll('a,button,.fish-card,.detail-card,.lb-close').forEach(function(el){
+  el.addEventListener('mouseenter',function(){ cur.classList.add('hov'); rng.classList.add('hov'); });
+  el.addEventListener('mouseleave',function(){ cur.classList.remove('hov'); rng.classList.remove('hov'); });
+});
+
+if ('ontouchstart' in window) {
+  cur.style.opacity = '0';
+  cur.style.transition = 'opacity 0.25s';
+  var _th;
+  document.addEventListener('touchstart', function(e){
+    var t = e.touches[0];
+    mx = t.clientX; my = t.clientY;
+    cur.style.left = mx+'px'; cur.style.top = my+'px';
+    clearTimeout(_th);
+    cur.style.opacity = '1';
+  }, {passive:true});
+  document.addEventListener('touchmove', function(e){
+    var t = e.touches[0];
+    mx = t.clientX; my = t.clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', function(){
+    _th = setTimeout(function(){ cur.style.opacity = '0'; }, 350);
+  });
+  document.addEventListener('touchcancel', function(){
+    cur.style.opacity = '0';
+  });
+}
+
+// ── Card tilt ──────────────────────────────────────────────────────────────────
+document.querySelectorAll('.fish-card').forEach(function(card){
+  card.addEventListener('mousemove', function(e){
+    var r = card.getBoundingClientRect();
+    var x = (e.clientX-r.left)/r.width - 0.5;
+    var y = (e.clientY-r.top)/r.height - 0.5;
+    var fr = card.querySelector('.fish-frame');
+    fr.style.transform = 'perspective(500px) rotateY('+(x*12)+'deg) rotateX('+(-y*8)+'deg) translateY(-12px) scale(1.05)';
+    fr.style.transition = 'transform 0.1s linear';
+  });
+  card.addEventListener('mouseleave', function(){
+    var fr = card.querySelector('.fish-frame');
+    fr.style.transform = '';
+    fr.style.transition = 'transform 0.4s cubic-bezier(.25,.46,.45,.94)';
+  });
+});
+ 
+// ── Lightbox ───────────────────────────────────────────────────────────────────
+var lb       = document.getElementById('lightbox');
+var lbBack   = document.getElementById('lbBackdrop');
+var lbClose  = document.getElementById('lbClose');
+var lbArtwork = document.getElementById('lbArtwork');
+var lbNum    = document.getElementById('lbNum');
+var lbName   = document.getElementById('lbName');
+var lbLatin  = document.getElementById('lbLatin');
+var lbDesc   = document.getElementById('lbDesc');
+var lbSpecs  = document.getElementById('lbSpecs');
+var lbTags   = document.getElementById('lbTags');
+var lbPrev   = document.getElementById('lbPrev');
+var lbNext   = document.getElementById('lbNext');
+var curI = 0;
+ 
+function openLB(i){ curI=i; renderLB(); lb.classList.add('active'); document.body.style.overflow='hidden'; }
+function closeLB(){ lb.classList.remove('active'); document.body.style.overflow=''; }
+function renderLB(){
+  var f = fishes[curI];
+  lbArtwork.src = f.img; lbArtwork.alt = f.workTitle;
+  lbNum.textContent  = '— '+String(curI+1).padStart(2,'0')+' / '+fishes.length;
+  var titleWords = f.workShort.split(' ');
+  lbName.innerHTML = titleWords.slice(0,-1).join(' ')+' <em>'+titleWords[titleWords.length-1]+'</em>';
+  lbLatin.textContent = f.name + ' · ' + f.latin;
+  lbDesc.textContent  = f.desc;
+  lbSpecs.innerHTML =
+    '<div class="spec"><div class="spec-k">소장처</div><div class="spec-v">'+f.collection+'</div></div>'+
+    '<div class="spec"><div class="spec-k">매체</div><div class="spec-v">'+f.medium+'</div></div>'+
+    '<div class="spec"><div class="spec-k">크기</div><div class="spec-v">'+f.size+'</div></div>'+
+    '<div class="spec"><div class="spec-k">작품번호</div><div class="spec-v">#'+String(curI+1).padStart(3,'0')+'</div></div>';
+  lbTags.innerHTML = f.tags.map(function(t){ return '<span class="lb-tag">'+t+'</span>'; }).join('');
+}
+lbClose.onclick = closeLB;
+lbBack.onclick  = closeLB;
+lbPrev.onclick  = function(){ curI=(curI-1+fishes.length)%fishes.length; renderLB(); };
+lbNext.onclick  = function(){ curI=(curI+1)%fishes.length; renderLB(); };
+document.addEventListener('keydown', function(e){
+  if(!lb.classList.contains('active')) return;
+  if(e.key==='Escape') closeLB();
+  if(e.key==='ArrowLeft') { curI=(curI-1+fishes.length)%fishes.length; renderLB(); }
+  if(e.key==='ArrowRight'){ curI=(curI+1)%fishes.length; renderLB(); }
+});
+ 
+// ── Hero parallax ──────────────────────────────────────────────────────────────
+document.addEventListener('mousemove', function(e){
+  var x = (e.clientX/window.innerWidth - 0.5)*18;
+  var y = (e.clientY/window.innerHeight - 0.5)*10;
+  var cau = document.querySelector('.caustic');
+  if(cau) cau.style.transform = 'translate('+(x*0.4)+'px,'+(y*0.4)+'px)';
+});
+</script>
+</body>
+</html>
+ 
